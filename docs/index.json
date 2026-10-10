@@ -1,0 +1,23 @@
+{
+  "version": "v1",
+  "blocklist": [],
+  "data": [
+    {
+      "schema_version": "1.0.0",
+      "id": "fflex",
+      "name": "FFlex",
+      "tagline": "Fit edge loops onto an editable imaginary curve",
+      "version": "1.5.0",
+      "type": "add-on",
+      "maintainer": "DanichJpeg",
+      "license": [
+        "SPDX:GPL-3.0-or-later"
+      ],
+      "blender_version_min": "5.0.0",
+      "website": "https://github.com/DanichJPEG/Fflex",
+      "archive_url": "./fflex-1.5.0.zip",
+      "archive_size": 54573,
+      "archive_hash": "sha256:dfe54717dedb9eebb6ea6bb5202efa2362c6b65cd402878a241c104b64725d13"
+    }
+  ]
+}
