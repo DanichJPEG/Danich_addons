@@ -4,8 +4,25 @@
 
 import bpy
 
-# Blender 5.0 renamed the 3D View space type from VIEW3D to VIEW_3D
-VIEW3D_TYPE = "VIEW3D" if bpy.app.version < (5, 0, 0) else "VIEW_3D"
+
+def _view3d_space_type():
+    """The 3D View identifier this Blender build accepts.
+
+    Blender renamed the space type from ``VIEW3D`` to ``VIEW_3D`` - and the
+    rename landed *before* 5.0: 4.5.14 already only accepts ``VIEW_3D``, so
+    guessing from ``bpy.app.version`` (``< 5.0`` -> ``VIEW3D``) makes
+    ``register_class()`` fail with ``enum "VIEW3D" not found``.  Ask the enum
+    itself instead.
+    """
+    try:
+        keys = {item.identifier for item in
+                bpy.types.Panel.bl_rna.properties["bl_space_type"].enum_items}
+    except Exception:                     # pragma: no cover - very old builds
+        return "VIEW_3D" if bpy.app.version >= (5, 0, 0) else "VIEW3D"
+    return "VIEW_3D" if "VIEW_3D" in keys else "VIEW3D"
+
+
+VIEW3D_TYPE = _view3d_space_type()
 
 # GPU points/lines built-ins changed in 4.5
 IS_4_5 = bpy.app.version >= (4, 5, 0)

@@ -122,7 +122,7 @@ class FFLEX_PT_panel(Panel):
 
         # ---- about -------------------------------------------------------- #
         box = layout.box()
-        box.label(text="FFlex   1.5.0   -   DanichJpeg", icon="INFO")
+        box.label(text="FFlex   1.5.1   -   DanichJpeg", icon="INFO")
         col = box.column(align=True)
         col.scale_y = 0.85
         col.label(text="Keys are shown in the viewport")

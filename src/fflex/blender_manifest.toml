@@ -5,13 +5,13 @@ schema_version = "1.0.0"
 # Blender imports the installed package as bl_ext.<repository_id>.fflex
 
 id = "fflex"
-version = "1.5.0"
+version = "1.5.1"
 name = "FFlex"
 tagline = "Fit edge loops onto an editable imaginary curve"
 maintainer = "DanichJpeg"
 type = "add-on"
 
-blender_version_min = "5.0.0"
+blender_version_min = "4.5.0"
 
 license = [
   "SPDX:GPL-3.0-or-later",

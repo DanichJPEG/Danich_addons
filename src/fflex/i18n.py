@@ -160,7 +160,7 @@ def unregister(module_name):
 HUD_TEXT = {
     "ru": {
         "title": "FFlex",
-        "author": "DanichJpeg  1.5.0",
+        "author": "DanichJpeg  1.5.1",
         "space": "Пространство",
         "pivot": "Центр",
         "points": "Точек",
@@ -239,7 +239,7 @@ HUD_TEXT = {
     },
     "en": {
         "title": "FFlex",
-        "author": "DanichJpeg  1.5.0",
+        "author": "DanichJpeg  1.5.1",
         "space": "Space",
         "pivot": "Pivot",
         "points": "Points",
