@@ -1,8 +1,13 @@
 # DanichJPEG Add-ons — репозиторий расширений Blender
 
-Статический репозиторий, из которого Blender сам скачивает аддоны и обновляет их
-(Blender 4.2+; сборки рассчитаны на 5.0+). Сейчас в нём один аддон — **FFlex**
-(автор DanichJpeg, GPL-3.0-or-later).
+Статический репозиторий, из которого Blender сам скачивает аддоны и обновляет их.
+
+**Пакеты:**
+
+| id | Название | Версия | Мин. Blender | Лицензия |
+|---|---|---|---|---|
+| `fflex` | FFlex — подгонка петель рёбер по мнимой кривой | 1.5.1 | 4.5.0 | GPL-3.0-or-later |
+| `pattern_wrap` | Pattern Wrap — наложение узорного мэша и UV-развёртка | 1.2.7 | 4.2.0 | MIT |
 
 **URL репозитория для Blender:**
 
@@ -25,12 +30,14 @@ https://danichjpeg.github.io/Danich_addons/index.json
    * **URL**: `https://danichjpeg.github.io/Danich_addons/index.json`
 
    Внутренний ID репозитория Blender создаёт сам (виден в списке репозиториев,
-   например `danichjpeg_github_io`). Для аддона он не важен: FFlex нигде не
-   опирается на имя репозитория — он работает через `__package__`
-   (`bl_ext.<ID репозитория>.fflex`).
-4. Сохранить и нажать **Sync** (круговые стрелки) — в списке появится `FFlex`.
-5. Выбрать в фильтре свой репозиторий → **Install**.
-6. Панель аддона: `3D View → Sidebar (N) → вкладка FFlex`, горячая клавиша `Ctrl+Shift+F`.
+   например `danichjpeg_github_io`). Для аддонов он не важен: ни FFlex, ни
+   Pattern Wrap не опираются на имя репозитория (модуль получается
+   `bl_ext.<ID репозитория>.<id пакета>`).
+4. Сохранить и нажать **Sync** (круговые стрелки) — в списке появятся `FFlex`
+   и `Pattern Wrap`.
+5. Выбрать в фильтре свой репозиторий → **Install** у нужного аддона.
+6. Панели: FFlex — `3D View → Sidebar (N) → вкладка FFlex` (горячая клавиша
+   `Ctrl+Shift+F`); Pattern Wrap — `3D View → Sidebar (N) → вкладка Pattern Wrap`.
 
 Галочку **Check for Updates on Startup** можно оставить включённой — Blender будет
 сам подтягивать новые версии.
@@ -58,12 +65,13 @@ Blender при включении второго выкидывает класс
 
 ## Как выпустить обновление (для автора)
 
-1. Правите код в `src/fflex/`.
-2. **Поднимаете `version`** в `src/fflex/blender_manifest.toml` (например `1.5.1`)
-   и в надписи версии в `src/fflex/ui.py` / `src/fflex/i18n.py`.
+1. Правите код в `src/<id>/`.
+2. **Поднимаете `version`** в `src/<id>/blender_manifest.toml` (например `1.5.1`)
+   и в надписях версии в коде аддона, если они там есть (`src/fflex/ui.py`,
+   `src/fflex/i18n.py`).
    Это обязательно: Blender кэширует `index.json` и при том же номере версии, но
    другом размере архива установка падает с
-   `FATAL_ERROR Archive size mismatch "fflex", expected …, was …` (проверено).
+   `FATAL_ERROR Archive size mismatch "<id>", expected …, was …` (проверено).
    Новая версия — новый файл, старый архив продолжает работать у тех, кто не обновился.
 3. Собрать репозиторий:
 
@@ -71,17 +79,26 @@ Blender при включении второго выкидывает класс
    powershell -NoProfile -ExecutionPolicy Bypass -File .\build_repo.ps1
    ```
 
-   Скрипт делает три вещи встроенными командами Blender:
+   Скрипт обходит **все** каталоги в `src\`, где есть `blender_manifest.toml`, и для
+   каждого делает встроенные команды Blender, после чего генерирует общий индекс:
 
    ```powershell
-   blender --background --factory-startup --command extension validate  .\src\fflex
-   blender --background --factory-startup --command extension build --source-dir .\src\fflex --output-dir .\docs
+   blender --background --factory-startup --command extension validate  .\src\<id>
+   blender --background --factory-startup --command extension build --source-dir .\src\<id> --output-dir .\docs
    blender --background --factory-startup --command extension server-generate --repo-dir .\docs --html
    ```
 
-4. Закоммитить `docs/` (там появляются `fflex-<версия>.zip`, обновлённый `index.json`
+   Собрать только один пакет: `.\build_repo.ps1 -Only pattern_wrap`.
+
+4. Закоммитить `docs/` (там появляются `<id>-<версия>.zip`, обновлённый `index.json`
    и `index.html` для просмотра в браузере) и запушить.
 5. Пользователи получат обновление при следующей синхронизации или при старте Blender.
+
+**Добавить новый аддон в репозиторий** = положить его папку в `src\<id>\`
+(`blender_manifest.toml` + код; имя папки обязано совпадать с `id`) и запустить
+`build_repo.ps1`. Дополнительно регистрировать ничего не нужно — индекс собирается
+по каталогу. Если аддон существует в виде легаси-файла с `bl_info`, его нужно
+превратить в расширение (как это сделано для FFlex и Pattern Wrap).
 
 Старые `*.zip` из `docs/` можно не удалять — `index.json` перечисляет все версии,
 и Blender сам выберет подходящую. `build_repo.ps1 -Clean` чистит папку перед сборкой.
@@ -143,6 +160,23 @@ blender --background --online-mode --command extension update
 
 ## История версий
 
+### Pattern Wrap
+
+**1.2.7** (текущая, первая в репозитории)
+* `tagline` укорочен до 64 символов: в исходном манифесте было 67, а `blender --command
+  extension validate` такое значение отвергает (`key "tagline" invalid: a value no
+  longer than 64 characters expected, found 67`). Публикация (`server-generate`)
+  длинный tagline пропускает, а строгая проверка — нет, поэтому она роняла сборку
+  репозитория. Текст: «Наложение узорного мэша: проекция и UV-развёртка».
+* код не менялся: `register()`/`unregister()` в аддоне уже идемпотентны, харнесс
+  проходит на 4.5 и 5.2 (3 чистых цикла).
+* исходник для публикации — `src/pattern_wrap/`. При правках исходного
+  `pattern_wrap\pattern_wrap.py` нужно пересобрать `pattern_wrap_ext` своим
+  скриптом (`pattern_wrap\build_zip.py`) и скопировать полученный `__init__.py`
+  в `src/pattern_wrap/__init__.py` — иначе ветки разойдутся.
+
+### FFlex
+
 **1.5.1** (текущая)
 * работает на Blender 4.x: идентификатор 3D-вьюпорта определяется по enum, а не по
   номеру версии (на 4.5 аддон не регистрировался вообще — `enum "VIEW3D" not found`);
@@ -175,18 +209,18 @@ blender --background --online-mode --command extension update
 
 ```
 Danich_addons/
-  src/fflex/                     исходники расширения
-    blender_manifest.toml        метаданные (id = fflex, version, license, …)
-    __init__.py                  register()/unregister(), без bl_info
-    compat.py  core.py  i18n.py  props.py  ops_flex.py  ops_space.py  ui.py
-  docs/                          ПУБЛИКУЕТСЯ (index.json + zip + index.html)
-  tests/check_from_repo.py       проверка установки из репозитория
-  build_repo.ps1                 сборка docs/
+  src/                           по одному каталогу на пакет (имя = id манифеста)
+    fflex/                       blender_manifest.toml + код расширения
+    pattern_wrap/                blender_manifest.toml + __init__.py
+  docs/                          ПУБЛИКУЕТСЯ (index.json + zip-ы + index.html)
+  tests/check_from_repo.py       проверка установки FFlex из репозитория
+  build_repo.ps1                 сборка docs/ по всем пакетам из src/
   .gitignore
 ```
 
-Blender ставит расширение как `bl_ext.danichjpeg.fflex` — поэтому весь код
-использует `__package__`, а не жёсткое имя `FFlex`.
+Blender ставит первый пакет как `bl_ext.danichjpeg.fflex`, второй — как
+`bl_ext.danichjpeg.pattern_wrap`. Код FFlex поэтому использует `__package__`, а не
+жёсткое имя `FFlex`; pattern_wrap от имени модуля не зависит.
 
 ---
 
@@ -196,6 +230,8 @@ Blender ставит расширение как `bl_ext.danichjpeg.fflex` — �
 # 1. статический разбор + циклы register/unregister (харнесс blender-addon-dev)
 powershell -NoProfile -ExecutionPolicy Bypass -File <скилл>\scripts\run_check.ps1 `
     -Path .\src\fflex -Form extension -Cycles 5
+powershell -NoProfile -ExecutionPolicy Bypass -File <скилл>\scripts\run_check.ps1 `
+    -Path .\src\pattern_wrap -Form extension -Cycles 3
 
 # 2. установка ИЗ репозитория и работа оператора
 python -m http.server 8124 --directory .\docs
@@ -205,6 +241,7 @@ $env:BLENDER_USER_EXTENSIONS = "$PWD\.testext"
 blender --background --online-mode --command extension repo-add danichjpeg `
     --url http://127.0.0.1:8124/index.json --clear-all
 blender --background --online-mode --command extension sync
+blender --background --online-mode --command extension list      # оба пакета
 blender --background --online-mode --command extension install -s -e fflex
 blender --background --online-mode --python .\tests\check_from_repo.py
 ```
@@ -215,6 +252,10 @@ blender --background --online-mode --python .\tests\check_from_repo.py
 не оставляет ни классов, ни операторов, ни пунктов keymap, ни пустого add-on
 keymap, ни `Scene.fflex`; повторное включение снова регистрирует всё и не дублирует
 горячую клавишу.
+
+Для pattern_wrap то же самое проверено установкой из репозитория: при включении
+появляются обе панели (`PW_PT_main`, `PW_PT_report`), все 9 операторов
+`patternwrap.*` и `Scene.pattern_wrap`, при выключении — исчезают без остатка.
 
 ---
 

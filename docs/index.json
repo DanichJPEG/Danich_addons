@@ -18,6 +18,27 @@
       "archive_url": "./fflex-1.5.1.zip",
       "archive_size": 54820,
       "archive_hash": "sha256:5e4211a1aafac32861d5be2c96667778aab9b422b09decce02591be854a8ffd6"
+    },
+    {
+      "schema_version": "1.0.0",
+      "id": "pattern_wrap",
+      "name": "Pattern Wrap",
+      "tagline": "\u041d\u0430\u043b\u043e\u0436\u0435\u043d\u0438\u0435 \u0443\u0437\u043e\u0440\u043d\u043e\u0433\u043e \u043c\u044d\u0448\u0430: \u043f\u0440\u043e\u0435\u043a\u0446\u0438\u044f \u0438 UV-\u0440\u0430\u0437\u0432\u0451\u0440\u0442\u043a\u0430",
+      "version": "1.2.7",
+      "type": "add-on",
+      "maintainer": "danich",
+      "license": [
+        "SPDX:MIT"
+      ],
+      "blender_version_min": "4.2.0",
+      "tags": [
+        "Mesh",
+        "UV",
+        "Object"
+      ],
+      "archive_url": "./pattern_wrap-1.2.7.zip",
+      "archive_size": 21393,
+      "archive_hash": "sha256:dfa192409599f76c084725b19337be65237a145c798141215a14e9cfebb32ba0"
     }
   ]
 }

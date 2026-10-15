@@ -6,12 +6,17 @@
 #   powershell -NoProfile -ExecutionPolicy Bypass -File .\build_repo.ps1
 #
 #   -Blender <path>  use a specific blender.exe
+#   -Only <id>       build a single package (a folder name inside src)
 #   -Clean           remove old *.zip from docs before building
+#
+# Every directory under .\src that contains a blender_manifest.toml is built,
+# so adding an add-on to the repository = dropping its folder into .\src.
 
 [CmdletBinding()]
 param(
     [string]$Blender = "",
     [string]$Root = "",
+    [string]$Only = "",
     [switch]$Clean
 )
 
@@ -35,7 +40,7 @@ if (-not $Blender -or -not (Test-Path -LiteralPath $Blender)) {
     throw "blender.exe not found; pass -Blender <path>."
 }
 
-$src = Join-Path $Root "src\fflex"
+$srcRoot = Join-Path $Root "src"
 $out = Join-Path $Root "docs"
 New-Item -ItemType Directory -Force -Path $out | Out-Null
 
@@ -44,21 +49,39 @@ if ($Clean) {
     Remove-Item -Force (Join-Path $out "index.json"), (Join-Path $out "index.html") -ErrorAction SilentlyContinue
 }
 
-Write-Host "Blender : $Blender"
-Write-Host "Source  : $src"
-Write-Host "Output  : $out"
+# Packages = every src\<id> that has a manifest. The folder name must equal the
+# manifest "id" (Blender enforces that when the extension is installed).
+$packages = @(Get-ChildItem -LiteralPath $srcRoot -Directory -ErrorAction SilentlyContinue |
+    Where-Object { Test-Path -LiteralPath (Join-Path $_.FullName "blender_manifest.toml") })
+if ($Only) {
+    $packages = @($packages | Where-Object { $_.Name -eq $Only })
+}
+if ($packages.Count -eq 0) {
+    throw "no packages with blender_manifest.toml found in $srcRoot"
+}
+
+Write-Host "Blender  : $Blender"
+Write-Host "Source   : $srcRoot"
+Write-Host "Output   : $out"
+Write-Host "Packages : $(($packages | ForEach-Object { $_.Name }) -join ', ')"
 Write-Host ""
 
-# 1) Validate the manifest and the package source.
-& $Blender --background --factory-startup --command extension validate $src
-if ($LASTEXITCODE -ne 0) { throw "manifest validation failed" }
+foreach ($package in $packages) {
+    Write-Host "--- $($package.Name) ---"
 
-# 2) Build the package: docs\fflex-<version>.zip
-& $Blender --background --factory-startup --command extension build --source-dir $src --output-dir $out
-if ($LASTEXITCODE -ne 0) { throw "build failed" }
+    # 1) Validate the manifest and the package source.
+    & $Blender --background --factory-startup --command extension validate $package.FullName
+    if ($LASTEXITCODE -ne 0) { throw "manifest validation failed: $($package.Name)" }
+
+    # 2) Build the package: docs\<id>-<version>.zip
+    & $Blender --background --factory-startup --command extension build `
+        --source-dir $package.FullName --output-dir $out
+    if ($LASTEXITCODE -ne 0) { throw "build failed: $($package.Name)" }
+}
 
 # 3) Generate docs\index.json (+ index.html for browsing in a browser).
-#    Only *.zip files in the top level of the folder are listed.
+#    Only *.zip files in the top level of the folder are listed, so old versions
+#    stay installable for users who have not updated yet.
 & $Blender --background --factory-startup --command extension server-generate --repo-dir $out --html
 if ($LASTEXITCODE -ne 0) { throw "server-generate failed" }
 
