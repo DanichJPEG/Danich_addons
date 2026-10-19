@@ -7,7 +7,7 @@
 | id | Название | Версия | Мин. Blender | Лицензия |
 |---|---|---|---|---|
 | `fflex` | FFlex — подгонка петель рёбер по мнимой кривой | 1.5.1 | 4.5.0 | GPL-3.0-or-later |
-| `pattern_wrap` | Pattern Wrap — наложение узорного мэша и UV-развёртка | 1.2.7 | 4.2.0 | MIT |
+| `pattern_wrap` | Pattern Wrap — наложение узорного мэша и UV-развёртка | 1.2.8 | 4.2.0 | MIT |
 
 **URL репозитория для Blender:**
 
@@ -22,20 +22,23 @@ https://danichjpeg.github.io/Danich_addons/index.json
 
 ## Установка (для пользователя)
 
-1. `Edit → Preferences → Get Extensions`.
-2. Открыть список репозиториев (выпадающий список сверху, там `extensions.blender.org`,
-   `blenderkit`…) → кнопка **+** → *Add Remote Repository*.
-3. Заполнить:
-   * **Name** — как репозиторий будет виден в списке: `DanichJPEG Add-ons`
-   * **URL**: `https://danichjpeg.github.io/Danich_addons/index.json`
+👉 **Инструкция со скриншотами: [guide/install-ru.md](guide/install-ru.md)**
 
-   Внутренний ID репозитория Blender создаёт сам (виден в списке репозиториев,
-   например `danichjpeg_github_io`). Для аддонов он не важен: ни FFlex, ни
-   Pattern Wrap не опираются на имя репозитория (модуль получается
+Кратко:
+
+1. `Edit → Preferences → Get Extensions`.
+2. Открыть список репозиториев (кнопка **Repositories** в правом верхнем углу) →
+   кнопка **+** → *Add Remote Repository*.
+3. В поле **URL** вставить `https://danichjpeg.github.io/Danich_addons/index.json`
+   и нажать **Create**.
+   Отдельного поля с именем в Blender 5.x нет — имя подставляется по адресу;
+   внутренний ID репозитория Blender тоже создаёт сам (например
+   `danichjpeg_github_io`). Для аддонов он не важен: ни FFlex, ни Pattern Wrap не
+   опираются на имя репозитория (модуль получается
    `bl_ext.<ID репозитория>.<id пакета>`).
-4. Сохранить и нажать **Sync** (круговые стрелки) — в списке появятся `FFlex`
-   и `Pattern Wrap`.
-5. Выбрать в фильтре свой репозиторий → **Install** у нужного аддона.
+4. Открыть **Repositories** → кнопка обновления (круговая стрелка) — в разделе
+   **Available** появятся `FFlex` и `Pattern Wrap`.
+5. Нажать **Install** у нужного аддона — он установится и сразу включится.
 6. Панели: FFlex — `3D View → Sidebar (N) → вкладка FFlex` (горячая клавиша
    `Ctrl+Shift+F`); Pattern Wrap — `3D View → Sidebar (N) → вкладка Pattern Wrap`.
 
@@ -162,7 +165,21 @@ blender --background --online-mode --command extension update
 
 ### Pattern Wrap
 
-**1.2.7** (текущая, первая в репозитории)
+**1.2.8** (текущая)
+* «Отступ» (`surface_offset`) теперь может быть **отрицательным** — узор
+  утапливается внутрь целевого мэша, а не только поднимается над ним:
+  * убран `max(..., 0.0)` при чтении параметра в UV-режиме (`_run_uv_inner`) —
+    раньше минус молча превращался в ноль;
+  * в `place_pattern_as_decal` снят такой же зажим у `gap`, поэтому UV-путь тоже
+    кладёт узор ниже плоскости цели;
+  * проверка «лёг ли узор на цель» (`_uv_verify`) считает допуск по
+    `relief + abs(offset)`, иначе отрицательный отступ давал ложный отчёт о провале;
+  * у ползунка симметричный диапазон −0.5 … 0.5, жёстких ограничений нет —
+    точное значение можно ввести руками.
+  Проверено на плоской цели: отступ +0.05 / 0 / −0.05 / −0.2 кладёт результат
+  ровно на эту высоту относительно плоскости, `gap` ±0.1 — аналогично.
+
+**1.2.7** (первая версия в репозитории)
 * `tagline` укорочен до 64 символов: в исходном манифесте было 67, а `blender --command
   extension validate` такое значение отвергает (`key "tagline" invalid: a value no
   longer than 64 characters expected, found 67`). Публикация (`server-generate`)
@@ -213,6 +230,8 @@ Danich_addons/
     fflex/                       blender_manifest.toml + код расширения
     pattern_wrap/                blender_manifest.toml + __init__.py
   docs/                          ПУБЛИКУЕТСЯ (index.json + zip-ы + index.html)
+  guide/install-ru.md            инструкция для пользователя со скриншотами
+  guide/img/                     сами скриншоты (сняты в Blender 5.2)
   tests/check_from_repo.py       проверка установки FFlex из репозитория
   build_repo.ps1                 сборка docs/ по всем пакетам из src/
   .gitignore

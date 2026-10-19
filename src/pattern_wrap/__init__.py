@@ -296,7 +296,8 @@ def place_pattern_as_decal(pattern, target, direction, depsgraph,
                            frame=None, allow_swap=True):
     """Ставит узор перед целью перпендикулярно лучам (двигает и, если надо, крутит).
 
-    gap — абсолютное расстояние от плоскости цели до ближайшей точки узора;
+    gap — расстояние от плоскости цели до ближайшей точки узора;
+    отрицательное значение утапливает узор внутрь цели;
     если не задано, берётся margin * размер цели.
     bounds/points позволяют задать габариты и силуэт вместо самой цели
     (нужно для UV-развёртки).
@@ -406,7 +407,7 @@ def place_pattern_as_decal(pattern, target, direction, depsgraph,
                                                offset.z * scale.z)))
                 r_pattern = max(r_pattern, abs(world_offset.dot(d)))
 
-    gap = margin * max(t_ext.length, 1e-6) if gap is None else max(float(gap), 0.0)
+    gap = margin * max(t_ext.length, 1e-6) if gap is None else float(gap)
     new_center = t_center - d * (r_target + r_pattern + gap)
 
     matrix = (Matrix.Translation(new_center) @ rot @ scale_m
@@ -1137,9 +1138,10 @@ class PW_Settings(bpy.types.PropertyGroup):
         default=1.0, min=0.0, max=4.0, soft_max=2.0)
     surface_offset: bpy.props.FloatProperty(
         name="Отступ",
-        description="Поднять весь узор над поверхностью. Если узор лёг ровно в цель "
-                    "и мерцает (z-fighting) — поднимите на 0.001 … 0.01",
-        default=0.0, soft_min=-0.1, soft_max=0.5)
+        description="Сдвиг всего узора вдоль нормали цели. Положительный — поднять "
+                    "над поверхностью (если узор мерцает, z-fighting: 0.001 … 0.01), "
+                    "отрицательный — утопить узор внутрь цели",
+        default=0.0, soft_min=-0.5, soft_max=0.5)
     trim_shrink: bpy.props.FloatProperty(
         name="Поджать край", description="Отступить от силуэта внутрь на это расстояние",
         default=0.0, min=0.0, soft_max=0.5)
@@ -1426,13 +1428,13 @@ def _uv_verify(context, work, target, relief, offset):
     """Проверяет, что узор действительно лёг на цель. Возвращает (ок, удаление)."""
     distance, _idx = measure_against_surface(
         work, target, depsgraph=context.evaluated_depsgraph_get())
-    limit = (relief + offset) * 3.0 + 0.01
+    limit = (relief + abs(offset)) * 3.0 + 0.01
     return distance <= limit, distance
 
 
 def _run_uv_inner(context, settings, stay_unfolded=False):
     target = settings.target
-    offset = max(float(settings.surface_offset), 0.0)
+    offset = float(settings.surface_offset)   # минус = утопить узор внутрь цели
     result = settings.result
     flip_changed = bool(settings.flip_depth) != bool(settings.flip_used)
 

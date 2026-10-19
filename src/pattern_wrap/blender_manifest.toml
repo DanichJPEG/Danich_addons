@@ -1,6 +1,6 @@
 schema_version = "1.0.0"
 id = "pattern_wrap"
-version = "1.2.7"
+version = "1.2.8"
 name = "Pattern Wrap"
 tagline = "Наложение узорного мэша: проекция и UV-развёртка"
 maintainer = "danich"
